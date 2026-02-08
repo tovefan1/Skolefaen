@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mattefaen</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+  }
+  .class-container {
+    max-width: 600px;
+    margin: 20px auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .class-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+  }
+  .class-item:last-child {
+    border-bottom: none;
+  }
+  .class-name {
+    font-weight: bold;
+  }
+  .countdown {
+    font-size: 1.2em;
+    margin-top: 5px;
+    color: #0077cc;
+  }
+  .completed {
+    color: #888;
+  }
+</style>
+</head>
+<body>
+<h1>Mattefaen</h1>
+<p style="text-align:center;">Nedtelling til matematikk-timene dine. Pause for torsdager håndteres automatisk.</p>
+<div class="class-container" id="classes"></div>
+
+<script>
+// Liste over klasse-datoer (DD.MM.YY) og ukedager
+const classDates = [
+  { date: "09.02.26", day: "Mandag" },
+  { date: "10.02.26", day: "Tirsdag" },
+  { date: "12.02.26", day: "Torsdag" },
+  { date: "23.02.26", day: "Mandag" },
+  { date: "24.02.26", day: "Tirsdag" },
+  { date: "26.02.26", day: "Torsdag" },
+  { date: "02.03.26", day: "Mandag" },
+  { date: "03.03.26", day: "Tirsdag" },
+  { date: "05.03.26", day: "Torsdag" },
+  { date: "09.03.26", day: "Mandag" },
+  { date: "10.03.26", day: "Tirsdag" },
+  { date: "12.03.26", day: "Torsdag" },
+  { date: "16.03.26", day: "Mandag" },
+  { date: "17.03.26", day: "Tirsdag" },
+  { date: "19.03.26", day: "Torsdag" },
+  { date: "26.03.26", day: "Torsdag" },
+  { date: "07.04.26", day: "Tirsdag" },
+  { date: "09.04.26", day: "Torsdag" },
+  { date: "13.04.26", day: "Mandag" },
+  { date: "14.04.26", day: "Tirsdag" },
+  { date: "16.04.26", day: "Torsdag" },
+  { date: "20.04.26", day: "Mandag" },
+  { date: "21.04.26", day: "Tirsdag" },
+  { date: "23.04.26", day: "Torsdag" },
+  { date: "27.04.26", day: "Mandag" },
+  { date: "28.04.26", day: "Tirsdag" },
+  { date: "30.04.26", day: "Torsdag" },
+  { date: "04.05.26", day: "Mandag" },
+  { date: "05.05.26", day: "Tirsdag" },
+  { date: "07.05.26", day: "Torsdag" },
+  { date: "11.05.26", day: "Mandag" },
+  { date: "12.05.26", day: "Tirsdag" },
+  { date: "18.05.26", day: "Mandag" },
+  { date: "19.05.26", day: "Tirsdag" },
+  { date: "28.05.26", day: "Torsdag" },
+  { date: "01.06.26", day: "Mandag" },
+  { date: "02.06.26", day: "Tirsdag" },
+  { date: "08.06.26", day: "Mandag" },
+  { date: "09.06.26", day: "Tirsdag" },
+  { date: "11.06.26", day: "Torsdag" },
+  { date: "15.06.26", day: "Mandag" },
+  { date: "16.06.26", day: "Tirsdag" },
+];
+
+// Ukedag-tider
+const schedule = {
+  "Mandag": { start: "08:30", end: "09:15" },
+  "Tirsdag": { start: "10:15", end: "11:00" },
+  "Torsdag": { start: "12:15", end: "14:00", recessStart: "13:00", recessEnd: "13:15" }
+};
+
+// Konverter DD.MM.YY + HH:MM til Date
+function parseDate(dateStr, timeStr) {
+  const [day, month, year] = dateStr.split(".").map(Number);
+  const [hour, minute] = timeStr.split(":").map(Number);
+  return new Date(2000 + year, month - 1, day, hour, minute);
+}
+
+// Lag HTML-elementer for klassene
+const container = document.getElementById("classes");
+classDates.forEach((c, idx) => {
+  const div = document.createElement("div");
+  div.classList.add("class-item");
+  div.innerHTML = `<div class="class-name">Matematikk-time: ${c.date} (${c.day})</div>
+                   <div class="countdown" id="countdown-${idx}"></div>`;
+  container.appendChild(div);
+});
+
+// Oppdater countdown hver sekund
+function updateCountdown() {
+  const now = new Date();
+  classDates.forEach((c, idx) => {
+    const times = schedule[c.day];
+    if (!times) return;
+    let countdownEl = document.getElementById(`countdown-${idx}`);
+    let start = parseDate(c.date, times.start);
+    let end = parseDate(c.date, times.end);
+
+    // Torsdag pause
+    let inRecess = false;
+    if (c.day === "Torsdag" && times.recessStart && times.recessEnd) {
+      let recessStart = parseDate(c.date, times.recessStart);
+      let recessEnd = parseDate(c.date, times.recessEnd);
+      if (now >= recessStart && now < recessEnd) inRecess = true;
+    }
+
+    let text = "";
+    if (now < start) {
+      text = `Starter om ${formatTime(diffTime(start, now))}`;
+    } else if (now >= start && now < end) {
+      if (inRecess) {
+        text = `Pause (stoppet)`;
+      } else {
+        text = `Slutter om ${formatTime(diffTime(end, now))}`;
+      }
+    } else {
+      text = "Fullført";
+    }
+    countdownEl.textContent = text;
+  });
+}
+
+// Funksjon for å regne forskjell i ms
+function diffTime(a, b) {
+  return a - b;
+}
+
+// Formater ms til timer, minutter, sekunder
+function formatTime(ms) {
+  let totalSeconds = Math.floor(ms / 1000);
+  let hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  let minutes = Math.floor(totalSeconds / 60);
+  let seconds = totalSeconds % 60;
+  return `${hours>0?hours+"t ":""}${minutes}m ${seconds}s`;
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
+</script>
+</body>
+</html>
