@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skolefaen</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 30px;
+    text-align: center;
+  }
+
+  h1 { margin-bottom: 40px; }
+
+  .subject {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  .timer {
+    font-size: 2em;
+    font-weight: bold;
+    color: #0077cc;
+    margin-bottom: 15px;
+  }
+
+  .progress-container {
+    width: 100%;
+    background: #ddd;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 18px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #0077cc;
+    transition: width 0.5s;
+  }
+</style>
+</head>
+<body>
+
+<h1>Mattefaen</h1>
+
+<div class="subject">
+  <h2>Matte</h2>
+  <div class="timer" id="mathTimer">Laster...</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="mathProgress"></div>
+  </div>
+</div>
+
+<div class="subject">
+  <h2>Engelsk</h2>
+  <div class="timer" id="englishTimer">Laster...</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="englishProgress"></div>
+  </div>
+</div>
+
+<script>
+// =====================
+// FELLES HJELPEFUNKSJONER
+// =====================
+function parseDate(d, t) {
+  const [day, month, year] = d.split(".").map(Number);
+  const [h, m] = t.split(":").map(Number);
+  return new Date(2000 + year, month - 1, day, h, m);
+}
+
+function buildPeriods(dates, schedule) {
+  let periods = [];
+  dates.forEach(c => {
+    const s = schedule[c.day];
+    if (!s) return;
+
+    let start = parseDate(c.date, s.start);
+    let end = parseDate(c.date, s.end);
+
+    if (s.recessStart) {
+      periods.push({ start, end: parseDate(c.date, s.recessStart) });
+      periods.push({ start: parseDate(c.date, s.recessEnd), end });
+    } else {
+      periods.push({ start, end });
+    }
+  });
+  return periods;
+}
+
+function remainingSeconds(periods) {
+  const now = new Date();
+  return periods.reduce((a,p)=>{
+    if (now < p.start) return a + (p.end - p.start)/1000;
+    if (now < p.end) return a + (p.end - now)/1000;
+    return a;
+  },0);
+}
+
+function totalSeconds(periods) {
+  return periods.reduce((a,p)=>a+(p.end-p.start)/1000,0);
+}
+
+// =====================
+// MATTE
+// =====================
+const mathDates = [
+  { date:"09.02.26", day:"Mandag" }, { date:"10.02.26", day:"Tirsdag" },
+  { date:"12.02.26", day:"Torsdag" }, { date:"23.02.26", day:"Mandag" },
+  { date:"24.02.26", day:"Tirsdag" }, { date:"26.02.26", day:"Torsdag" },
+  { date:"02.03.26", day:"Mandag" }, { date:"03.03.26", day:"Tirsdag" },
+  { date:"05.03.26", day:"Torsdag" }, { date:"09.03.26", day:"Mandag" },
+  { date:"10.03.26", day:"Tirsdag" }, { date:"12.03.26", day:"Torsdag" },
+  { date:"16.03.26", day:"Mandag" }, { date:"17.03.26", day:"Tirsdag" },
+  { date:"19.03.26", day:"Torsdag" }, { date:"26.03.26", day:"Torsdag" },
+  { date:"07.04.26", day:"Tirsdag" }, { date:"09.04.26", day:"Torsdag" },
+  { date:"13.04.26", day:"Mandag" }, { date:"14.04.26", day:"Tirsdag" },
+  { date:"16.04.26", day:"Torsdag" }, { date:"20.04.26", day:"Mandag" },
+  { date:"21.04.26", day:"Tirsdag" }, { date:"23.04.26", day:"Torsdag" },
+  { date:"27.04.26", day:"Mandag" }, { date:"28.04.26", day:"Tirsdag" },
+  { date:"30.04.26", day:"Torsdag" }, { date:"04.05.26", day:"Mandag" },
+  { date:"05.05.26", day:"Tirsdag" }, { date:"07.05.26", day:"Torsdag" },
+  { date:"11.05.26", day:"Mandag" }, { date:"12.05.26", day:"Tirsdag" },
+  { date:"18.05.26", day:"Mandag" }, { date:"19.05.26", day:"Tirsdag" },
+  { date:"28.05.26", day:"Torsdag" }, { date:"01.06.26", day:"Mandag" },
+  { date:"02.06.26", day:"Tirsdag" }, { date:"08.06.26", day:"Mandag" },
+  { date:"09.06.26", day:"Tirsdag" }, { date:"11.06.26", day:"Torsdag" },
+  { date:"15.06.26", day:"Mandag" }, { date:"16.06.26", day:"Tirsdag" }
+];
+
+const mathSchedule = {
+  "Mandag": { start:"08:30", end:"09:15" },
+  "Tirsdag": { start:"10:15", end:"11:00" },
+  "Torsdag": { start:"12:15", end:"14:00", recessStart:"13:00", recessEnd:"13:15" }
+};
+
+const mathPeriods = buildPeriods(mathDates, mathSchedule);
+const mathTotal = totalSeconds(mathPeriods);
+
+// =====================
+// ENGELSK
+// =====================
+const englishDates = [
+  {date:"11.02.26",day:"Onsdag"},{date:"12.02.26",day:"Torsdag"},
+  {date:"25.02.26",day:"Onsdag"},{date:"26.02.26",day:"Torsdag"},
+  {date:"04.03.26",day:"Onsdag"},{date:"05.03.26",day:"Torsdag"},
+  {date:"11.03.26",day:"Onsdag"},{date:"12.03.26",day:"Torsdag"},
+  {date:"18.03.26",day:"Onsdag"},{date:"19.03.26",day:"Torsdag"},
+  {date:"25.03.26",day:"Onsdag"},{date:"26.03.26",day:"Torsdag"},
+  {date:"08.04.26",day:"Onsdag"},{date:"09.04.26",day:"Torsdag"},
+  {date:"15.04.26",day:"Onsdag"},{date:"16.04.26",day:"Torsdag"},
+  {date:"22.04.26",day:"Onsdag"},{date:"23.04.26",day:"Torsdag"},
+  {date:"29.04.26",day:"Onsdag"},{date:"30.04.26",day:"Torsdag"},
+  {date:"06.05.26",day:"Onsdag"},{date:"07.05.26",day:"Torsdag"},
+  {date:"13.05.26",day:"Onsdag"},
+  {date:"27.05.26",day:"Onsdag"},{date:"28.05.26",day:"Torsdag"},
+  {date:"03.06.26",day:"Onsdag"},
+  {date:"10.06.26",day:"Onsdag"},{date:"11.06.26",day:"Torsdag"},
+  {date:"17.06.26",day:"Onsdag"}
+];
+
+const englishSchedule = {
+  "Onsdag": { start:"08:30", end:"10:00" },
+  "Torsdag": { start:"11:30", end:"12:15" }
+};
+
+const englishPeriods = buildPeriods(englishDates, englishSchedule);
+const englishTotal = totalSeconds(englishPeriods);
+
+// =====================
+// OPPDATER
+// =====================
+function tick() {
+  const mr = remainingSeconds(mathPeriods);
+  document.getElementById("mathTimer").textContent =
+    `${Math.floor(mr/3600)}t ${Math.floor(mr%3600/60)}m ${Math.floor(mr%60)}s`;
+  document.getElementById("mathProgress").style.width =
+    `${((mathTotal-mr)/mathTotal)*100}%`;
+
+  const er = remainingSeconds(englishPeriods);
+  document.getElementById("englishTimer").textContent =
+    `${Math.floor(er/3600)}t ${Math.floor(er%3600/60)}m ${Math.floor(er%60)}s`;
+  document.getElementById("englishProgress").style.width =
+    `${((englishTotal-er)/englishTotal)*100}%`;
+}
+
+setInterval(tick, 1000);
+tick();
+</script>
+
+</body>
+</html>
