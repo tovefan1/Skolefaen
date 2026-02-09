@@ -91,6 +91,14 @@
   </div>
 </div>
 
+  <div class="subject">
+  <h2>Kroppsdøding</h2>
+  <div class="timer" id="peTimer">Laster…</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="peProgress"></div>
+  </div>
+</div>
+
 
 <script>
 // =====================
@@ -462,6 +470,76 @@ function updateKrle() {
 
 setInterval(updateKrle, 1000);
 updateKrle();
+</script>
+
+  <script>
+// =====================
+// PE – DATOER
+// =====================
+
+const peDates = [
+ "11.02.26","25.02.26","04.03.26","11.03.26","18.03.26","25.03.26",
+ "08.04.26","15.04.26","22.04.26","29.04.26",
+ "06.05.26","13.05.26","27.05.26",
+ "03.06.26","10.06.26","17.06.26"
+];
+
+// =====================
+// BYGG PE-TIMER
+// =====================
+
+let pePeriods = [];
+
+peDates.forEach(date => {
+  const d = parseDate(date, "00:00");
+  const day = d.getDay(); // 3 = Onsdag
+
+  if (day === 3) {
+    pePeriods.push({
+      start: parseDate(date,"11:30"),
+      end: parseDate(date,"13:00")
+    });
+  }
+});
+
+// =====================
+// TOTAL & GJENSTÅENDE
+// =====================
+
+const peTotalSeconds = pePeriods.reduce(
+  (a,p)=>a+(p.end-p.start)/1000,0
+);
+
+function peRemainingSeconds() {
+  const now = new Date();
+  return pePeriods.reduce((a,p)=>{
+    if (now < p.start) return a + (p.end-p.start)/1000;
+    if (now < p.end) return a + (p.end-now)/1000;
+    return a;
+  },0);
+}
+
+// =====================
+// OPPDATER UI
+// =====================
+
+function updatePe() {
+  const rem = peRemainingSeconds();
+  const done = peTotalSeconds - rem;
+
+  const h = Math.floor(rem/3600);
+  const m = Math.floor((rem%3600)/60);
+  const s = Math.floor(rem%60);
+
+  document.getElementById("peTimer").textContent =
+    `${h}t ${m}m ${s}s`;
+
+  document.getElementById("peProgress").style.width =
+    `${(done/peTotalSeconds)*100}%`;
+}
+
+setInterval(updatePe, 1000);
+updatePe();
 </script>
 
 </body>
