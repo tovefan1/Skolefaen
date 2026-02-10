@@ -6,9 +6,6 @@
 <title>Skolefaen</title>
 <style>
 
-<img src="https://www.google.com/imgres?q=jeffrey%20epstein&imgurl=https%3A%2F%2Fsandovallegacygroup.com%2Fwp-content%2Fuploads%2F2025%2F08%2FScreenshot-2025-08-14-at-9.19.56-AM-854x675.png&imgrefurl=https%3A%2F%2Fsandovallegacygroup.com%2Fthe-estate-aftermath-of-jeffrey-epstein-legal-lessons-for-all%2F&docid=Lo3XJ9JTjainUM&tbnid=m40_jlFp_O0IhM&vet=12ahUKEwi9vbKz2M6SAxXjBNsEHaDEB-4QnPAOegQIEhAB..i&w=854&h=675&hcb=2&ved=2ahUKEwi9vbKz2M6SAxXjBNsEHaDEB-4QnPAOegQIEhAB" style="width:300px">
-
-
   body {
     font-family: Arial, sans-serif;
     background: #f5f5f5;
@@ -108,6 +105,14 @@
   <div class="timer" id="valgfagTimer">Laster…</div>
   <div class="progress-container">
     <div class="progress-bar" id="valgfagProgress"></div>
+  </div>
+</div>
+
+  <div class="subject">
+  <h2>Knut og Hitlerverk</h2>
+  <div class="timer" id="kuhTimer">Laster…</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="kuhProgress"></div>
   </div>
 </div>
 
@@ -622,6 +627,76 @@ function updateValgfag() {
 
 setInterval(updateValgfag, 1000);
 updateValgfag();
+</script>
+
+  <script>
+// =====================
+// KUH – DATOER
+// =====================
+
+const kuhDates = [
+ "23.02.26","02.03.26","09.03.26","23.03.26",
+ "13.04.26","20.04.26","27.04.26",
+ "04.05.26","11.05.26","18.05.26",
+ "01.06.26","08.06.26","15.06.26"
+];
+
+// =====================
+// BYGG KUH-TIMER
+// =====================
+
+let kuhPeriods = [];
+
+kuhDates.forEach(date => {
+  const d = parseDate(date, "00:00");
+  const day = d.getDay(); // 1 = Mandag
+
+  if (day === 1) {
+    kuhPeriods.push(
+      { start: parseDate(date,"11:30"), end: parseDate(date,"13:00") },
+      { start: parseDate(date,"13:15"), end: parseDate(date,"14:00") }
+    );
+  }
+});
+
+// =====================
+// TOTAL & GJENSTÅENDE
+// =====================
+
+const kuhTotalSeconds = kuhPeriods.reduce(
+  (a,p)=>a+(p.end-p.start)/1000,0
+);
+
+function kuhRemainingSeconds() {
+  const now = new Date();
+  return kuhPeriods.reduce((a,p)=>{
+    if (now < p.start) return a + (p.end-p.start)/1000;
+    if (now < p.end) return a + (p.end-now)/1000;
+    return a;
+  },0);
+}
+
+// =====================
+// OPPDATER UI
+// =====================
+
+function updateKuH() {
+  const rem = kuhRemainingSeconds();
+  const done = kuhTotalSeconds - rem;
+
+  const h = Math.floor(rem/3600);
+  const m = Math.floor((rem%3600)/60);
+  const s = Math.floor(rem%60);
+
+  document.getElementById("kuhTimer").textContent =
+    `${h}t ${m}m ${s}s`;
+
+  document.getElementById("kuhProgress").style.width =
+    `${(done/kuhTotalSeconds)*100}%`;
+}
+
+setInterval(updateKuH, 1000);
+updateKuH();
 </script>
 
 </body>
