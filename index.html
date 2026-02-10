@@ -709,31 +709,44 @@ updateKuH();
   
 <script>
 // =====================
-// KUH – DATOER
+// SAMFUNNSFAG – DATOER
 // =====================
 
-const kuhDates = [
- "23.02.26","02.03.26","09.03.26","23.03.26",
- "13.04.26","20.04.26","27.04.26",
- "04.05.26","11.05.26","18.05.26",
- "01.06.26","08.06.26","15.06.26"
+const samfDates = [
+ "11.02.26","13.02.26","27.02.26","04.03.26","06.03.26",
+ "18.03.26","20.03.26","25.03.26","27.03.26",
+ "08.04.26","10.04.26","15.04.26","17.04.26",
+ "22.04.26","24.04.26","29.04.26",
+ "06.05.26","08.05.26","13.05.26","15.05.26",
+ "27.05.26","29.05.26",
+ "03.06.26","05.06.26","07.06.26",
+ "10.06.26","12.06.26","17.06.26"
 ];
 
 // =====================
-// BYGG KUH-TIMER
+// BYGG SAMFUNNSFAG-TIMER
 // =====================
 
-let kuhPeriods = [];
+let samfPeriods = [];
 
-kuhDates.forEach(date => {
+samfDates.forEach(date => {
   const d = parseDate(date, "00:00");
-  const day = d.getDay(); // 1 = Mandag
+  const day = d.getDay(); // 3 = Ons, 5 = Fre
 
-  if (day === 1) {
-    kuhPeriods.push(
-      { start: parseDate(date,"11:30"), end: parseDate(date,"13:00") },
-      { start: parseDate(date,"13:15"), end: parseDate(date,"14:00") }
-    );
+  // ONSDAG
+  if (day === 3) {
+    samfPeriods.push({
+      start: parseDate(date,"13:15"),
+      end: parseDate(date,"14:45")
+    });
+  }
+
+  // FREDAG
+  if (day === 5) {
+    samfPeriods.push({
+      start: parseDate(date,"11:30"),
+      end: parseDate(date,"12:15")
+    });
   }
 });
 
@@ -741,13 +754,13 @@ kuhDates.forEach(date => {
 // TOTAL & GJENSTÅENDE
 // =====================
 
-const kuhTotalSeconds = kuhPeriods.reduce(
+const samfTotalSeconds = samfPeriods.reduce(
   (a,p)=>a+(p.end-p.start)/1000,0
 );
 
-function kuhRemainingSeconds() {
+function samfRemainingSeconds() {
   const now = new Date();
-  return kuhPeriods.reduce((a,p)=>{
+  return samfPeriods.reduce((a,p)=>{
     if (now < p.start) return a + (p.end-p.start)/1000;
     if (now < p.end) return a + (p.end-now)/1000;
     return a;
@@ -758,23 +771,23 @@ function kuhRemainingSeconds() {
 // OPPDATER UI
 // =====================
 
-function updateKuH() {
-  const rem = kuhRemainingSeconds();
-  const done = kuhTotalSeconds - rem;
+function updateSamf() {
+  const rem = samfRemainingSeconds();
+  const done = samfTotalSeconds - rem;
 
   const h = Math.floor(rem/3600);
   const m = Math.floor((rem%3600)/60);
   const s = Math.floor(rem%60);
 
-  document.getElementById("kuhTimer").textContent =
+  document.getElementById("samfTimer").textContent =
     `${h}t ${m}m ${s}s`;
 
-  document.getElementById("kuhProgress").style.width =
-    `${(done/kuhTotalSeconds)*100}%`;
+  document.getElementById("samfProgress").style.width =
+    `${(done/samfTotalSeconds)*100}%`;
 }
 
-setInterval(updateKuH, 1000);
-updateKuH();
+setInterval(updateSamf, 1000);
+updateSamf();
 </script>
 
 </body>
