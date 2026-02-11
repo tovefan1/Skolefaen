@@ -132,6 +132,14 @@
   </div>
 </div>
 
+  <div class="subject">
+  <h2>naturfaggot</h2>
+  <div class="timer" id="naturfagTimer">Laster…</div>
+  <div class="progress-container">
+    <div class="progress-bar" id="naturfagProgress"></div>
+  </div>
+</div>
+
   
 <script>
 // =====================
@@ -866,6 +874,103 @@ function updateUtdfag() {
 
 setInterval(updateUtdfag, 1000);
 updateUtdfag();
+</script>
+
+  <script>
+// =====================
+// NATURFAG – DATOER
+// =====================
+
+const naturfagDates = [
+ "12.02.26","13.02.26","24.02.26","26.02.26","27.02.26",
+ "03.03.26","05.03.26","06.03.26",
+ "10.03.26","12.03.26","13.03.26",
+ "17.03.26","19.03.26","20.03.26",
+ "26.03.26","27.03.26",
+ "07.04.26","09.04.26","10.04.26",
+ "14.04.26","16.04.26","17.04.26",
+ "21.04.26","23.04.26","24.04.26",
+ "28.04.26","30.04.26",
+ "05.05.26","07.05.26","08.05.26",
+ "12.05.26","15.05.26","19.05.26",
+ "28.05.26","29.05.26",
+ "02.06.26","05.06.26","09.06.26",
+ "11.06.26","12.06.26","16.06.26"
+];
+
+// =====================
+// BYGG NATURFAG-TIMER
+// =====================
+
+let naturfagPeriods = [];
+
+naturfagDates.forEach(date => {
+  const d = parseDate(date, "00:00");
+  const day = d.getDay(); // 2=Tir, 4=Tor, 5=Fre
+
+  // TIRSDAG
+  if (day === 2) {
+    naturfagPeriods.push({
+      start: parseDate(date,"11:30"),
+      end: parseDate(date,"12:15")
+    });
+  }
+
+  // TORSDAG
+  if (day === 4) {
+    naturfagPeriods.push({
+      start: parseDate(date,"10:15"),
+      end: parseDate(date,"11:00")
+    });
+  }
+
+  // FREDAG
+  if (day === 5) {
+    naturfagPeriods.push({
+      start: parseDate(date,"09:15"),
+      end: parseDate(date,"10:00")
+    });
+  }
+});
+
+// =====================
+// TOTAL & GJENSTÅENDE
+// =====================
+
+const naturfagTotalSeconds = naturfagPeriods.reduce(
+  (a,p)=>a+(p.end-p.start)/1000,0
+);
+
+function naturfagRemainingSeconds() {
+  const now = new Date();
+  return naturfagPeriods.reduce((a,p)=>{
+    if (now < p.start) return a + (p.end-p.start)/1000;
+    if (now < p.end) return a + (p.end-now)/1000;
+    return a;
+  },0);
+}
+
+// =====================
+// OPPDATER UI
+// =====================
+
+function updateNaturfag() {
+  const rem = naturfagRemainingSeconds();
+  const done = naturfagTotalSeconds - rem;
+
+  const h = Math.floor(rem/3600);
+  const m = Math.floor((rem%3600)/60);
+  const s = Math.floor(rem%60);
+
+  document.getElementById("naturfagTimer").textContent =
+    `${h}t ${m}m ${s}s`;
+
+  document.getElementById("naturfagProgress").style.width =
+    `${(done/naturfagTotalSeconds)*100}%`;
+}
+
+setInterval(updateNaturfag, 1000);
+updateNaturfag();
 </script>
 
 </body>
